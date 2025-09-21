@@ -1,3 +1,5 @@
+"use client";
+
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -9,12 +11,11 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
-import { splitQA } from "@/lib/split-qa";
-import { mockBody } from "@/lib/mock";
-
-const { question, answer } = splitQA(mockBody);
+import useIssuesStore from "@/stores/issues-store";
 
 export default function Home() {
+  const { question, answer } = useIssuesStore();
+
   return (
     <ResizablePanelGroup direction="horizontal" className="min-h-screen">
       <ResizablePanel className="px-4 min-w-1/3 max-w-1/3">
