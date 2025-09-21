@@ -1,6 +1,3 @@
-export const mockBody: string =
-  "⭐⭐⭐⭐⭐ 题目 ⭐⭐⭐⭐⭐\n\nJavaScript 中，有多种方法实现数组去重，可以说下都有哪些方法，每个方法的优劣吗？\n\n⭐⭐⭐⭐⭐ 答案 ⭐⭐⭐⭐⭐\n\n在 JavaScript 中，数组去重是常见需求，有多种实现方法，各有优劣。以下是常用方案及分析：\n\n\n### 1. 使用 `Set` + 扩展运算符（最简洁）\n```javascript\nconst arr = [1, 2, 2, 3, 3, 3];\nconst uniqueArr = [...new Set(arr)]; \n// 结果：[1, 2, 3]\n```\n**原理**：`Set` 是 ES6 新增的数据结构，其成员具有唯一性，配合扩展运算符 `...` 可转为数组。\n\n**优势**：\n- 代码简洁，一行实现，可读性高\n- 性能较好（平均时间复杂度接近 O(n)）\n- 支持基本数据类型（Number、String、Boolean、null、undefined）\n\n**劣势**：\n- 无法去重引用类型（如对象、数组），因为 `Set` 认为两个不同引用的对象是不同的\n- 无法自定义去重规则（如根据对象的某个属性去重）\n- 不支持 IE 浏览器（需转译或降级处理）\n\n\n### 2. 使用 `Set` + `Array.from`（兼容性略好）\n```javascript\nconst uniqueArr = Array.from(new Set(arr));\n```\n**原理**：与方法 1 一致，只是通过 `Array.from` 将 `Set` 转为数组。\n\n**优势**：\n- 与方法 1 功能相同，兼容性略优于扩展运算符（在部分旧环境中）\n\n**劣势**：\n- 与方法 1 完全一致\n\n\n### 3. 使用 `indexOf`/`includes` + 循环（传统方案）\n```javascript\nconst uniqueArr = [];\nfor (let i = 0; i < arr.length; i++) {\n  // 若数组中不存在当前元素，则推入\n  if (uniqueArr.indexOf(arr[i]) === -1) { \n    // 或用 includes：!uniqueArr.includes(arr[i])\n    uniqueArr.push(arr[i]);\n  }\n}\n```\n**原理**：遍历原数组，通过 `indexOf` 检查元素是否已存在于结果数组中，不存在则添加。\n\n**优势**：\n- 兼容性好（支持 IE8+）\n- 可手动控制去重逻辑（如添加额外条件）\n\n**劣势**：\n- 性能较差（`indexOf`/`includes` 每次都会遍历结果数组，总时间复杂度 O(n²)）\n- 同样无法直接去重引用类型\n- 代码相对冗长\n\n\n### 4. 使用 `filter` + `indexOf`（函数式风格）\n```javascript\nconst uniqueArr = arr.filter((item, index) => {\n  return arr.indexOf(item) === index;\n});\n```\n**原理**：`filter` 保留数组中**首次出现**的元素（`indexOf` 返回元素第一次出现的索引）。\n\n**优势**：\n- 代码简洁，函数式风格，可读性好\n\n**劣势**：\n- 性能与方法 3 相同（O(n²)）\n- 不支持引用类型去重\n- 若数组中有 `NaN`，会失效（`indexOf(NaN)` 始终返回 -1，因为 `NaN !== NaN`）\n\n\n### 5. 使用对象键值对（适合复杂场景）\n```javascript\nconst uniqueArr = [];\nconst tempObj = {};\nfor (let i = 0; i < arr.length; i++) {\n  const item = arr[i];\n  // 将元素转为字符串作为键（避免类型冲突，如 1 和 '1'）\n  const key = typeof item + JSON.stringify(item);\n  if (!tempObj[key]) {\n    tempObj[key] = true;\n    uniqueArr.push(item);\n  }\n}\n```\n**原理**：利用对象的键唯一性，将数组元素转为字符串作为键存储，避免重复。\n\n**优势**：\n- 性能较好（时间复杂度 O(n)）\n- 可区分基本类型的类型差异（如 `1` 和 `'1'` 会被视为不同）\n- 可扩展为引用类型去重（通过自定义 `key` 生成规则）\n\n**劣势**：\n- 代码较复杂，需要处理键的生成逻辑\n- 对于 `Symbol` 类型支持不佳（`JSON.stringify(Symbol())` 会返回 `undefined`）\n\n\n### 6. 使用 `Map`（ES6+，比对象更灵活）\n```javascript\nconst uniqueArr = [];\nconst map = new Map();\nfor (const item of arr) {\n  // 检查 Map 中是否已存在该元素\n  if (!map.has(item)) {\n    map.set(item, true);\n    uniqueArr.push(item);\n  }\n}\n```\n**原理**：`Map` 的键可以是任意类型（包括对象），利用其 `has` 方法检查是否存在。\n\n**优势**：\n- 性能好（O(n)）\n- 支持引用类型的去重（但需注意：两个不同引用的对象仍会被视为不同键）\n- 支持 `NaN` 和 `undefined` 的正确去重（`Map` 中 `NaN` 被视为相等）\n\n**劣势**：\n- 兼容性依赖 ES6（不支持 IE）\n- 引用类型去重仍需额外处理（如根据对象属性判断）\n\n\n### 7. 引用类型去重（需自定义规则）\n以上方法对引用类型（如对象）效果有限，需根据具体属性去重：\n```javascript\nconst arr = [\n  { id: 1, name: 'a' },\n  { id: 1, name: 'b' },\n  { id: 2, name: 'c' }\n];\n\n// 根据 id 去重\nconst uniqueArr = [];\nconst idSet = new Set();\nfor (const item of arr) {\n  if (!idSet.has(item.id)) {\n    idSet.add(item.id);\n    uniqueArr.push(item);\n  }\n}\n```\n**原理**：提取对象的唯一标识（如 `id`），通过 `Set` 或对象记录已出现的标识。\n\n\n### 总结：如何选择？\n| 场景                     | 推荐方法                          | 理由                                       |\n|--------------------------|-----------------------------------|--------------------------------------------|\n| 简单基本类型去重（ES6+） | `[...new Set(arr)]`               | 简洁高效，一行代码                         |\n| 需兼容旧环境（如 IE）    | `indexOf` + 循环                  | 兼容性最好                                 |\n| 性能优先（大数据量）     | `Map` 或对象键值对                | 时间复杂度 O(n)，效率高                    |\n| 引用类型去重             | 自定义标识 + `Set`/`Map`          | 需根据具体属性手动实现                     |\n| 需区分 `1` 和 `'1'`      | 对象键值对（带类型标识）          | 可通过 `typeof + 值` 生成唯一键            |\n\n实际开发中，`[...new Set(arr)]` 是最常用的方案，简洁且能满足大多数基本类型去重需求；若涉及引用类型，则需结合业务场景自定义去重规则。";
-
 export const mockData = {
   url: "https://api.github.com/repos/inkmark-com-cn/interview/issues/2",
   repository_url: "https://api.github.com/repos/inkmark-com-cn/interview",
@@ -82,3 +79,172 @@ export const mockData = {
   performed_via_github_app: null,
   state_reason: null,
 };
+
+export const mockIssueList = [
+  {
+    url: "https://api.github.com/repos/inkmark-com-cn/ai/issues/2",
+    repository_url: "https://api.github.com/repos/inkmark-com-cn/ai",
+    labels_url:
+      "https://api.github.com/repos/inkmark-com-cn/ai/issues/2/labels{/name}",
+    comments_url:
+      "https://api.github.com/repos/inkmark-com-cn/ai/issues/2/comments",
+    events_url:
+      "https://api.github.com/repos/inkmark-com-cn/ai/issues/2/events",
+    html_url: "https://github.com/inkmark-com-cn/ai/issues/2",
+    id: 3437671909,
+    node_id: "I_kwDOPz0GZc7M5rXl",
+    number: 2,
+    title: "什么是 BPE 算法",
+    user: {
+      login: "inkmark-com-cn",
+      id: 60834609,
+      node_id: "MDQ6VXNlcjYwODM0NjA5",
+      avatar_url: "https://avatars.githubusercontent.com/u/60834609?v=4",
+      gravatar_id: "",
+      url: "https://api.github.com/users/inkmark-com-cn",
+      html_url: "https://github.com/inkmark-com-cn",
+      followers_url: "https://api.github.com/users/inkmark-com-cn/followers",
+      following_url:
+        "https://api.github.com/users/inkmark-com-cn/following{/other_user}",
+      gists_url: "https://api.github.com/users/inkmark-com-cn/gists{/gist_id}",
+      starred_url:
+        "https://api.github.com/users/inkmark-com-cn/starred{/owner}{/repo}",
+      subscriptions_url:
+        "https://api.github.com/users/inkmark-com-cn/subscriptions",
+      organizations_url: "https://api.github.com/users/inkmark-com-cn/orgs",
+      repos_url: "https://api.github.com/users/inkmark-com-cn/repos",
+      events_url:
+        "https://api.github.com/users/inkmark-com-cn/events{/privacy}",
+      received_events_url:
+        "https://api.github.com/users/inkmark-com-cn/received_events",
+      type: "User",
+      user_view_type: "public",
+      site_admin: false,
+    },
+    labels: [],
+    state: "open",
+    locked: false,
+    assignee: null,
+    assignees: [],
+    milestone: null,
+    comments: 0,
+    created_at: "2025-09-21T00:51:23Z",
+    updated_at: "2025-09-21T00:51:23Z",
+    closed_at: null,
+    author_association: "OWNER",
+    active_lock_reason: null,
+    sub_issues_summary: {
+      total: 0,
+      completed: 0,
+      percent_completed: 0,
+    },
+    issue_dependencies_summary: {
+      blocked_by: 0,
+      total_blocked_by: 0,
+      blocking: 0,
+      total_blocking: 0,
+    },
+    body: 'BPE（Byte Pair Encoding，字节对编码）是一种广泛应用于自然语言处理（尤其是大语言模型）中的子词分词算法，其核心思想是通过迭代合并最频繁出现的字节对（或子词单元），生成新的子词单元，从而平衡词汇表大小和编码效率。\n\n### 工作原理（以英文为例）：\n1. **初始词汇表**：将文本拆分为最小单元（通常是单个字符），并加入特殊符号（如`</w>`表示词尾）。  \n   例如，"low" "lower" "newest" "widest" 初始拆分为：  \n   `l o w</w>`, `l o w e r</w>`, `n e w e s t</w>`, `w i d e s t</w>`\n\n2. **迭代合并最频繁的字节对**：  \n   - 统计所有相邻单元的出现频率，找到出现次数最多的一对（如"e"和"s"），将其合并为新单元（"es"）。  \n   - 更新词汇表，加入新单元，并重复此过程，直到达到预设的词汇表大小或迭代次数。\n\n3. **最终分词效果**：  \n   经过多轮合并后，上述例子可能被拆分为：`low</w>`, `low e r</w>`, `new es t</w>`, `wid es t</w>`，既保留了高频子词（如"es"），又避免了生僻词的未登录问题。\n\n### 优势：\n- **平衡词汇表大小**：相比单字符编码（词汇表小但序列长）和整词编码（词汇表大且易遗漏生僻词），BPE生成的子词单元能在两者间取得平衡。  \n- **处理未登录词**：生僻词或组合词可通过已有子词拼接（如"unhappiness"可拆分为"un-happi-ness"）。  \n- **适配多语言**：无需针对不同语言设计特殊规则，适用于混合语言场景。\n\n### 应用：\nBPE是Transformer、GPT、BERT等主流大语言模型的核心分词技术（如GPT使用的ByteLevel-BPE），也是机器翻译、语音识别等任务中处理词汇的重要工具。',
+    closed_by: null,
+    reactions: {
+      url: "https://api.github.com/repos/inkmark-com-cn/ai/issues/2/reactions",
+      total_count: 0,
+      "+1": 0,
+      "-1": 0,
+      laugh: 0,
+      hooray: 0,
+      confused: 0,
+      heart: 0,
+      rocket: 0,
+      eyes: 0,
+    },
+    timeline_url:
+      "https://api.github.com/repos/inkmark-com-cn/ai/issues/2/timeline",
+    performed_via_github_app: null,
+    state_reason: null,
+  },
+  {
+    url: "https://api.github.com/repos/inkmark-com-cn/ai/issues/1",
+    repository_url: "https://api.github.com/repos/inkmark-com-cn/ai",
+    labels_url:
+      "https://api.github.com/repos/inkmark-com-cn/ai/issues/1/labels{/name}",
+    comments_url:
+      "https://api.github.com/repos/inkmark-com-cn/ai/issues/1/comments",
+    events_url:
+      "https://api.github.com/repos/inkmark-com-cn/ai/issues/1/events",
+    html_url: "https://github.com/inkmark-com-cn/ai/issues/1",
+    id: 3437666101,
+    node_id: "I_kwDOPz0GZc7M5p81",
+    number: 1,
+    title: "为什么说，现在的 AI 都是基于概率的？",
+    user: {
+      login: "inkmark-com-cn",
+      id: 60834609,
+      node_id: "MDQ6VXNlcjYwODM0NjA5",
+      avatar_url: "https://avatars.githubusercontent.com/u/60834609?v=4",
+      gravatar_id: "",
+      url: "https://api.github.com/users/inkmark-com-cn",
+      html_url: "https://github.com/inkmark-com-cn",
+      followers_url: "https://api.github.com/users/inkmark-com-cn/followers",
+      following_url:
+        "https://api.github.com/users/inkmark-com-cn/following{/other_user}",
+      gists_url: "https://api.github.com/users/inkmark-com-cn/gists{/gist_id}",
+      starred_url:
+        "https://api.github.com/users/inkmark-com-cn/starred{/owner}{/repo}",
+      subscriptions_url:
+        "https://api.github.com/users/inkmark-com-cn/subscriptions",
+      organizations_url: "https://api.github.com/users/inkmark-com-cn/orgs",
+      repos_url: "https://api.github.com/users/inkmark-com-cn/repos",
+      events_url:
+        "https://api.github.com/users/inkmark-com-cn/events{/privacy}",
+      received_events_url:
+        "https://api.github.com/users/inkmark-com-cn/received_events",
+      type: "User",
+      user_view_type: "public",
+      site_admin: false,
+    },
+    labels: [],
+    state: "open",
+    locked: false,
+    assignee: null,
+    assignees: [],
+    milestone: null,
+    comments: 0,
+    created_at: "2025-09-21T00:39:05Z",
+    updated_at: "2025-09-21T00:39:05Z",
+    closed_at: null,
+    author_association: "OWNER",
+    active_lock_reason: null,
+    sub_issues_summary: {
+      total: 0,
+      completed: 0,
+      percent_completed: 0,
+    },
+    issue_dependencies_summary: {
+      blocked_by: 0,
+      total_blocked_by: 0,
+      blocking: 0,
+      total_blocking: 0,
+    },
+    body: "⭐⭐⭐⭐⭐ 题目 ⭐⭐⭐⭐⭐\n\n为什么说，现在的 AI 都是基于概率的？\n\n⭐⭐⭐⭐⭐ 答案 ⭐⭐⭐⭐⭐\n\n现在的AI都是基于概率的，这可以从其底层原理的多个方面进行解释：\n\n- **机器学习的核心是概率建模**：现代 AI 的智能本质就是对概率分布的建模与优化。无论是生成式模型还是强化学习系统，其核心都在于通过大规模参数和数据，逼近复杂数据分布。例如，在自然语言处理中，语言模型如 GPT 生成文本时，是基于前文预测下一个词的概率分布，通过最小化交叉熵损失，模型学会捕捉训练数据中的统计模式。在图像生成领域，DALL·E 通过去噪过程优化图像像素的分布，也是在对概率分布进行建模。\n\n- **神经网络的训练与推理基于概率**：神经网络在训练阶段，会根据输入数据和对应的标签，通过反向传播算法来调整神经元之间的连接权重，这个过程的目标是让模型在给定输入时，能够以最高的概率输出正确的结果。在推理阶段，当输入新的数据时，模型会根据训练学到的参数，计算出不同输出的概率，然后选择概率最高的输出作为结果。例如，一个图像识别模型在识别一张图片是猫还是狗时，会计算出图片属于猫和狗的概率，哪个概率高就将其识别为哪种动物。\n\n- **概率用于处理不确定性**：现实世界中的信息往往是不确定的，AI 需要能够处理这种不确定性。概率模型为 AI 提供了一种量化不确定性的方法，使 AI 能够在不确定的情况下做出决策。例如，在自动驾驶中，自动驾驶系统需要根据传感器接收到的不完整、有噪声的数据来做出决策，如是否加速、减速或转弯等。系统会使用概率图模型来估计不同行动的后果的概率，并基于这些估计来做出决策。\n\n- **强化学习中的概率策略**：在强化学习中，模型通过优化奖励函数来学习策略，模型会根据当前状态选择一个动作，这个动作的选择通常是基于概率的。例如，AlphaGo 在进行围棋对弈时，会根据当前棋盘状态计算每个可能走法的概率，然后选择一个概率较高的走法进行落子。通过不断地与环境交互并根据奖励反馈调整策略的概率分布，模型逐渐学会在特定任务中采取最优的行动策略。",
+    closed_by: null,
+    reactions: {
+      url: "https://api.github.com/repos/inkmark-com-cn/ai/issues/1/reactions",
+      total_count: 0,
+      "+1": 0,
+      "-1": 0,
+      laugh: 0,
+      hooray: 0,
+      confused: 0,
+      heart: 0,
+      rocket: 0,
+      eyes: 0,
+    },
+    timeline_url:
+      "https://api.github.com/repos/inkmark-com-cn/ai/issues/1/timeline",
+    performed_via_github_app: null,
+    state_reason: null,
+  },
+].sort((a, b) => a.id - b.id);
+
+export const mockBody = mockIssueList[0].body;

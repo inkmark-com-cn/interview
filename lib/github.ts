@@ -24,3 +24,22 @@ export async function getIssue(
     console.error("Error fetching issue:", error);
   }
 }
+
+export async function getIssueList(
+  owner: string,
+  repo: string,
+  page: number = 1,
+  perPage: number = 30
+) {
+  try {
+    const response = await octokit.request("GET /repos/{owner}/{repo}/issues", {
+      owner,
+      repo,
+      page,
+      per_page: perPage,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching issue list:", error);
+  }
+}

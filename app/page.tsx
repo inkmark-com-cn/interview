@@ -1,3 +1,4 @@
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -7,33 +8,30 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { splitQA } from "@/lib/split-qa";
 import { mockBody } from "@/lib/mock";
-import { ScrollArea } from "@radix-ui/react-scroll-area";
 
 const { question, answer } = splitQA(mockBody);
 
 export default function Home() {
   return (
     <ResizablePanelGroup direction="horizontal" className="min-h-screen">
-      <ResizablePanel className="min-w-1/6 max-w-[300px] shadow-xl px-6">
+      <ResizablePanel className="px-4 min-w-1/3 max-w-1/3">
         <ScrollArea className="h-screen overflow-scroll">
-          <h2 className="text-xl font-bold py-6 sticky top-0 bg-white">目录</h2>
-        </ScrollArea>
-      </ResizablePanel>
-      <ResizableHandle />
-      <ResizablePanel className="min-w-2/6 shadow-xl px-6">
-        <ScrollArea className="h-screen overflow-scroll">
-          <h2 className="text-xl font-bold py-6 sticky top-0 bg-white">题目</h2>
+          <h2 className="relative py-4 text-xl font-bold ticky top-0 bg-white text-center">
+            <SidebarTrigger className="absolute left-0" />
+            <span>题目</span>
+          </h2>
           <Markdown remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>
             {question}
           </Markdown>
         </ScrollArea>
       </ResizablePanel>
       <ResizableHandle />
-      <ResizablePanel className="min-w-3/6 px-6">
+      <ResizablePanel className="shadow-xl px-4">
         <ScrollArea className="h-screen overflow-scroll">
-          <h2 className="text-xl font-bold py-6 sticky top-0 bg-white">
+          <h2 className="py-4 text-xl font-bold sticky top-0 bg-white text-center">
             答案与解析
           </h2>
           <Markdown
